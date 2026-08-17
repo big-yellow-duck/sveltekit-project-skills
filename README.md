@@ -9,10 +9,11 @@ Ask Codex to install the skill from this repository:
 $skill-installer install the sveltekit-project-structure skill from https://github.com/big-yellow-duck/sveltekit-project-skills
 ```
 
-### other agents 
-idk just ask them to git clone and install it for you.
 
 Codex should detect the installed skill automatically. If it does not appear, restart Codex. You can then select it with `/skills`, mention it as `$sveltekit-project-structure`, or let Codex invoke it automatically when a task matches its description.
+
+### other agents 
+idk just ask them to git clone and install it for you.
 
 ### motivation
 I've had many issues of agent implementing features that dont align with the current code base style.
