@@ -2,7 +2,8 @@
 
 This guide covers day-to-day Svelte and SvelteKit implementation practices. Adapt the examples to
 the repository's installed Svelte version, compiler settings, styling system, and local conventions.
-Use [style-guide.md](style-guide.md) for file ownership, dependency direction, and project structure.
+Use the repository's architecture guidance, or `$sveltekit-project-structure` when available, for
+file ownership, dependency direction, and project structure.
 
 ## Contents
 
@@ -43,8 +44,8 @@ project's current version.
   intentional shared store with documented ownership and lifecycle.
 - Snapshot rune proxies before cloning or serializing them. Do not pass live reactive proxies across
   network, worker, or persistence boundaries.
-- `const <name> = $derived()` states are only allowed when deriving from page load data.
-- Use `let <name> = $derived()` when that state is meant to be updated and used at runtime after mount.
+- Treat derived values as computed state rather than independent mutable state. If a project intentionally
+  overrides a derived binding, follow its established convention and make that behavior explicit.
 
 ## SSR, hydration, and browser boundaries
 

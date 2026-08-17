@@ -1,4 +1,0 @@
-interface:
-  display_name: "SvelteKit Project Structure"
-  short_description: "Organize SvelteKit code by ownership"
-  default_prompt: "Use $sveltekit-project-structure to organize this SvelteKit project by feature ownership and runtime boundary."

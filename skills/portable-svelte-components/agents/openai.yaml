@@ -1,0 +1,4 @@
+interface:
+  display_name: "Portable Svelte Components"
+  short_description: "Build reusable design-driven components"
+  default_prompt: "Use $portable-svelte-components to turn this design into a reusable, data-driven Svelte component."

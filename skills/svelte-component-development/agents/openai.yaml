@@ -1,0 +1,4 @@
+interface:
+  display_name: "Svelte Component Development"
+  short_description: "Build robust Svelte 5 components"
+  default_prompt: "Use $svelte-component-development to implement this Svelte component with accessible, SSR-safe Svelte 5 patterns."
