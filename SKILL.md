@@ -1,6 +1,6 @@
 ---
 name: sveltekit-project-structure
-description: Organize, review, or refactor SvelteKit 5 and TypeScript projects by feature ownership, runtime boundary, dependency direction, and narrow public APIs. Use when deciding where Svelte components, routes, browser clients, shared contracts, server services, database code, Web Workers, commands, tests, types, configuration, or assets belong; when proposing a project tree; or when correcting an existing SvelteKit structure without mixing browser, server, common, UI, and product-feature responsibilities.
+description: Develop, organize, review, or refactor SvelteKit 5 and TypeScript projects by feature ownership, runtime boundary, dependency direction, accessible Svelte component practices, and narrow public APIs. Use when implementing general Svelte features, deciding where Svelte components, routes, browser clients, shared contracts, server services, database code, Web Workers, commands, tests, types, configuration, or assets belong; when proposing a project tree; or when correcting an existing SvelteKit structure without mixing browser, server, common, UI, and product-feature responsibilities.
 ---
 
 # SvelteKit Project Structure
@@ -9,19 +9,20 @@ Apply the bundled tool-agnostic SvelteKit architecture guide to make file placem
 
 ## Workflow
 
-1. Read [references/style-guide.md](references/style-guide.md) completely before proposing or making structural changes.
+1. Read [references/style-guide.md](references/style-guide.md) completely for structure guidance and [references/svelte-best-practices.md](references/svelte-best-practices.md) when implementing or reviewing Svelte code.
 2. Inspect the project's local instructions, existing tree, import aliases, SvelteKit version, package scripts, and relevant files. Treat repository-specific instructions as authoritative when they conflict with the reference.
-3. Identify the narrowest true owner of each behavior before choosing a directory:
+3. For general Svelte implementation, preserve the component's SSR/browser boundary, use the project's Svelte version and event conventions, keep state transitions explicit, and verify keyboard and screen-reader behavior for interactive UI.
+4. Identify the narrowest true owner of each behavior before choosing a directory:
    - product capability: browser `feature/<name>`, server `server/feature/<name>`, or cross-runtime `common/feature/<name>`
    - generic capability: UI, auth, database, storage, or another precisely named primitive
    - framework adapter: route, hook, page/layout load, or API handler
    - executable adapter: long-running `services/<name>` or one-shot `commands/<name>`
-4. Classify the runtime boundary: browser-only, server-only, or deliberately browser/server-safe. Keep common code serializable, deterministic, and safe for browser bundles.
-5. Trace dependency direction and existing callers before moving or extracting code. Do not introduce sideways feature imports, feature dependencies in primitives, private environment imports in browser-safe modules, or executable dependencies in reusable server code.
-6. Keep types, tests, helpers, fixtures, and assets with their narrowest owner. Promote them only when multiple owners genuinely share the same meaning.
-7. Keep routes and entrypoints thin. Move reusable product behavior to feature services and reusable infrastructure to primitives.
-8. For implementation work, follow the repository's required impact analysis, editing, formatting, type-checking, and test workflow. Preserve behavior unless redesign is explicitly requested.
-9. Summarize the resulting ownership choices, boundary decisions, important dependency constraints, verification performed, and any intentional deviations from the guide.
+5. Classify the runtime boundary: browser-only, server-only, or deliberately browser/server-safe. Keep common code serializable, deterministic, and safe for browser bundles.
+6. Trace dependency direction and existing callers before moving or extracting code. Do not introduce sideways feature imports, feature dependencies in primitives, private environment imports in browser-safe modules, or executable dependencies in reusable server code.
+7. Keep types, tests, helpers, fixtures, and assets with their narrowest owner. Promote them only when multiple owners genuinely share the same meaning.
+8. Keep routes and entrypoints thin. Move reusable product behavior to feature services and reusable infrastructure to primitives.
+9. For implementation work, follow the repository's required impact analysis, editing, formatting, type-checking, and test workflow. Preserve behavior unless redesign is explicitly requested.
+10. Summarize the resulting ownership choices, boundary decisions, important dependency constraints, verification performed, and any intentional deviations from the guide.
 
 ## Applying the Reference
 
