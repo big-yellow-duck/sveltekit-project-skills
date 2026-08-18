@@ -784,6 +784,9 @@ product rule. The auth primitive should provide the mechanism used to enforce th
 Features should not import a database connection merely for convenience when an owned repository
 or service boundary would make the behavior clearer and testable.
 
+For implementation rules, composition patterns, exceptions, and a migration checklist, read
+[Feature data access](feature-data-access.md).
+
 ## Database schemas and migrations
 
 Database table definitions, relations, inferred row types, and query infrastructure are server-only
@@ -813,6 +816,8 @@ Rules:
 - map rows to explicit common DTOs or server feature models at a repository or service boundary
 - server features own product queries; `server/db` owns connections, transactions, schema, and
   genuinely cross-feature database mechanics
+- feature repository modules are the normal consumers of ORM schema objects; routes and services
+  consume feature APIs rather than constructing queries
 - review schema changes and their generated migration together
 
 Keep migration output and ORM metadata in the locations required by the selected database tool.
