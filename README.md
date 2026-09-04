@@ -7,6 +7,7 @@ A reusable collection of focused Codex skills for keeping SvelteKit projects con
 | Skill | Use it for |
 | --- | --- |
 | `sveltekit-project-structure` | Project trees, ownership, runtime boundaries, routes, server code, databases, services, and dependency direction |
+| `feature-diagram` | Mermaid feature architecture diagrams: composition (feature boxes with subfeature compartments), runtime dependency arrows, sidecar subfeatures, primitives as a foundation band, roadmap coloring, and a rework table |
 | `svelte-component-development` | Everyday Svelte 5 components, runes, SSR, accessibility, forms, interaction, and component review |
 | `portable-svelte-components` | Figma/design-to-code work and reusable, data-driven component families |
 

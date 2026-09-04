@@ -1,0 +1,4 @@
+interface:
+  display_name: "Feature Diagram"
+  short_description: "Draw feature composition and dependency diagrams"
+  default_prompt: "Use $feature-diagram to draw or update this codebase's feature architecture diagram with composition and dependency semantics."
