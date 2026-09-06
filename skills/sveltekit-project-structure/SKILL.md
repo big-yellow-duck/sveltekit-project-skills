@@ -1,6 +1,6 @@
 ---
 name: sveltekit-project-structure
-description: Organize, review, or refactor SvelteKit and TypeScript projects by feature ownership, runtime boundary, dependency direction, and narrow public APIs. Use when deciding where routes, components, browser clients, shared contracts, server services, database code, repositories, Web Workers, commands, tests, types, configuration, or assets belong; standardizing feature database access; proposing a project tree; tracing architectural dependencies; or correcting an existing structure.
+description: Organize, review, or refactor SvelteKit and TypeScript projects by feature ownership, runtime boundary, dependency direction, and narrow public APIs. Use when deciding where routes, components, browser clients, shared contracts, server services, internal shared services, external-service adapters, database code, repositories, Web Workers, commands, tests, types, configuration, or assets belong; standardizing feature database access; proposing a project tree; tracing architectural dependencies; or correcting an existing structure.
 ---
 
 # SvelteKit Project Structure
@@ -12,31 +12,38 @@ Make file placement and dependency decisions explicit. Favor incremental, behavi
 1. Inspect local instructions, the existing tree, aliases, framework versions, package scripts, and relevant files. Treat repository rules as authoritative.
 2. Read only the relevant sections of [references/style-guide.md](references/style-guide.md) using the routing table below. Read the complete guide only for a repository-wide architecture review.
 3. When the task involves feature database access, repository design, direct schema or database-client imports, transaction ownership, or persistence boundaries in routes and services, read [references/feature-data-access.md](references/feature-data-access.md) completely.
-4. Identify the narrowest true owner: product capability, generic primitive, framework adapter, long-running service, or one-shot command.
+4. Identify the narrowest true owner: product capability, internal shared service, external-service
+   adapter, generic primitive, framework adapter, long-running executable, or one-shot command.
+   A capability with its own persistent state and reusable contracts consumed by several features
+   is an internal shared service, not part of its most frequent consumer.
 5. Classify every affected module as browser-only, server-only, or deliberately cross-runtime.
-6. Trace existing callers and dependency direction before moving or extracting code. Follow the repository's required impact-analysis workflow.
-7. Keep types, tests, helpers, fixtures, and assets with their narrowest owner. Promote them only when multiple owners genuinely share the same meaning.
-8. Keep routes and executable entrypoints thin. Move reusable behavior behind owned feature or primitive APIs.
+6. Trace existing callers and dependency direction before moving or extracting code. Follow the repository's required impact-analysis workflow. Shared services never import product features; features
+   supply named provider implementations through the composition root. External-service adapters
+   own protocol, signing, and credentials but never business state.
+7. Keep types, tests, helpers, fixtures, and assets with their narrowest owner. Promote them only
+   when multiple owners genuinely share the same meaning.
+8. Keep routes and executable entrypoints thin. Move reusable behavior behind owned feature,
+   shared-service, or primitive APIs.
 9. Preserve behavior unless redesign is explicit, then run the repository's type checks and focused tests.
 10. Report ownership decisions, runtime boundaries, dependency constraints, verification, and intentional deviations.
 
 ## Reference routing
 
-Search `references/style-guide.md` for these headings and read the applicable section through the next same-level heading:
-
+- Shared services, provider contracts, external-service adapters, and the composition root: `## Internal shared services`, `## External-service adapters`, and `## The three meanings of "service"`.
+- Services and CLI commands: `## Standalone services and commands`.
 - Overall architecture or target trees: `## Purpose`, `## Architectural vocabulary`, `## Dependency direction`, and `## Feature boundaries`.
 - Components, types, helpers, and public exports: `## Generic UI ownership` through `## Public APIs and index.ts`.
 - Reactive state or browser access: `## Reactive state and functions`, `## Browser data access`, and `## Browser workers`.
 - Routes and APIs: `## Route responsibilities` and `## Validation and network boundaries`.
-- Services and CLI commands: `## Standalone services and commands`.
 - Auth, database infrastructure, storage, and migrations: `## Authentication, database, and storage primitives` and `## Database schemas and migrations`.
 - Feature repositories and persistence access: read [references/feature-data-access.md](references/feature-data-access.md) completely.
 - Naming, tests, framework roots, artifacts, or environment: read the matching heading near the end of the guide.
 - Final architecture review: `## Review checklist` and `## Adoption`.
 
 ## Core constraints
-
 - Preserve narrow ownership, explicit runtime boundaries, inward dependencies, thin adapters, typed contracts, and colocated tests.
+- Internal shared services expose typed public contracts and never import product features; feature-specific behavior crosses the boundary as named provider implementations registered by the composition root.
+- External-service adapters own protocol, signing, verification, and credential injection; business state such as orders, retries, and durable message intent stays in the consuming feature.
 - Adapt examples and aliases to the target repository. Do not introduce a tool or directory solely because it appears in the guide.
 - Do not create empty directories, barrels, type files, or helpers merely to match an example tree.
 - Do not hide sideways feature dependencies behind generic `shared`, `common`, or `utils` modules.

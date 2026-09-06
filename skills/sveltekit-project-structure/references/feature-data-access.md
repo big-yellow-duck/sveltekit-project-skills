@@ -18,7 +18,11 @@ collection of product-specific CRUD methods.
 
 ## Boundary model
 
-Separate database infrastructure from feature persistence:
+Separate database infrastructure from feature persistence. When the operation belongs to an
+internal shared service rather than a single product feature, place its repositories and runtime
+under `$lib/server/services/<service-name>/` with the same composition discipline — the service
+owns its registry behavior, product features own their business relationships. See
+[Internal shared services](../style-guide.md#internal-shared-services) in the style guide:
 
 ```text
 src/lib/server/
