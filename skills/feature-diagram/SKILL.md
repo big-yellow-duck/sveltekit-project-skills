@@ -1,53 +1,74 @@
 ---
 name: feature-diagram
-description: Create or update feature dependency diagrams for a codebase using Mermaid composition and dependency semantics. Use when mapping features and subfeatures, documenting which features compose which subfeatures versus which features depend on which contracts, drawing primitives as a foundation band instead of node spaghetti, distinguishing sidecar subfeatures consumed through a parent runtime, maintaining a rework or roadmap table beside the diagram, or deciding whether a capability is a feature, a subfeature, or a primitive.
+description: Document a codebase's feature architecture as a feature-layout directory, or update an existing one — an overview README with a system diagram, detail views per product feature and shared service, operation flows, external-service adapter contracts, and an implementation roadmap, with Mermaid diagrams that separate composition from dependency. Use when mapping features, subfeatures, shared services, and primitives; drawing feature dependency diagrams; promoting a sidecar into a shared service with its own view; writing per-feature implementation-alignment tables; or deciding whether a capability is a feature, a shared service, a subfeature, or a primitive.
 ---
 
-# Feature Diagram
+# Feature layout
 
-Draw feature architecture as a single Mermaid flowchart that separates two questions readers
-always ask: *what is this made of?* and *what does this consume?* Enclosure answers the first,
-arrows answer the second. Never mix the two in one arrow.
+Document feature architecture as a small directory of Markdown views, not one oversized page:
+an overview README with a system diagram, a detail view per product feature and shared service,
+an operation-flow document per multi-step workflow, adapter contracts per external service, and
+a roadmap. Every diagram separates two questions readers always ask — *what is this made of?*
+(enclosure) from *what does this consume?* (labelled arrows). Never mix the two in one arrow.
 
 ## Workflow
 
-1. Inventory the capabilities in scope: ship-ready features, features under rework, and queued
-   features. Ask for the list if the repository does not document it.
-2. Classify each capability as a **feature**, a **subfeature** (composed inside a feature), a
-   **sidecar** (composed and consumed from outside through the parent's runtime), or a
-   **primitive** (a building block: database, object storage, identity provider, message bus).
-   Read [references/diagram-guide.md](references/diagram-guide.md) completely before drawing.
-3. Place subfeatures as compartments inside their parent feature box. If a capability has no
-   independent client surface or lifecycle, it is a compartment, not a node.
-4. Draw solid arrows only for runtime dependencies between top-level features and between a
-   feature and another feature's named subfeature. Draw dashed arrows for sidecar consumption.
-5. Collapse primitives into a foundation band with no inbound edges, and tag every feature node
-   with the primitives it uses using the `⚑` marker.
-6. Color nodes by roadmap state (`complete`, rework, next target, queued) with one `classDef` per
-   state, and keep a rework table under the diagram mapping every colored node to the concrete
-   change required.
-7. Verify the diagram compiles with mermaid-cli (`mmdc`) before delivering it, and re-check after
-   every edit. A diagram that does not compile is not a deliverable.
-8. Report the composition decisions (what became a compartment and why), the dependency edges you
-   drew or deliberately removed, and any capability you left out of scope.
+1. Inventory the capabilities in scope: implemented features, drafted features, shared services,
+   and queued work. Ask for the list when the repository does not document it, and read existing
+   feature docs before writing new ones.
+2. Classify each capability as a **feature**, a **shared service**, a **subfeature** (composed
+   inside a feature), or a **primitive** (database, object storage, identity provider, message
+   bus). A capability with persistent state and reusable contracts consumed by several features
+   is a shared service, not a sidecar compartment. Read
+   [references/diagram-guide.md](references/diagram-guide.md) completely before drawing.
+3. Choose the documentation surface. A single diagram answers a focused question; a
+   feature-layout directory is the default when features own workflows, contracts, and migration
+   state. For a directory, follow the skeleton in
+   [references/layout-conventions.md](references/layout-conventions.md) and give every feature
+   and shared service its own detail view.
+4. Draw per-view Mermaid diagrams with the dark-theme init, a primitives band with no inbound
+   arrows, `⚑` tags on every consumer, and arrows running **from the provider to the consumer** —
+   A → B means B depends on A.
+5. Write detail views that separate target design from current implementation: an ownership
+   statement, public-contract tables, dependencies-consumed tables, and an implementation-
+   alignment table (current evidence vs remaining work). Label not-yet-existing APIs *proposed*;
+   never present them as implemented.
+6. Document multi-step workflows as operation flows (execution order, decisions, transaction
+   boundaries) kept separate from structural views, and external providers as adapter contracts
+   in the external-services directory.
+7. Record implementation status in prose and roadmap tables ("Status: **planned — …**",
+   checklists with unchecked boxes). Never color diagrams by roadmap state; colors are
+   structural, not temporal.
+8. Verify before delivering and after every edit: compile every diagram with mermaid-cli
+   (`mmdc`) in default and dark themes, and check every relative Markdown link resolves. A
+   diagram that does not compile or a link that 404s is not a deliverable.
+9. Report the classification decisions (what became a shared service vs a subfeature and why),
+   the contract edges drawn or deliberately removed, the proposed-vs-implemented boundary, and
+   anything left out of scope.
 
 ## Reference routing
 
-Read [references/diagram-guide.md](references/diagram-guide.md) for:
-
-- The full vocabulary: feature, subfeature, sidecar, primitive, composition, dependency.
-- Mermaid patterns for feature boxes with compartments, the primitives band, sidecar styling,
-  and per-node primitive tags.
-- Layout and dark-theme configuration that renders legibly.
-- Compile verification with mermaid-cli and the failure modes to check.
-- Worked examples: a two-level container model (project → inspections) with sidecar artifacts,
-  distributed trash ownership, and folder placement as a prerequisite feature.
+- [references/diagram-guide.md](references/diagram-guide.md) — diagram vocabulary, the
+  classification questions, Mermaid skeletons, provider→consumer arrow orientation, the
+  primitives band, sidecars and when to promote them to shared services, status markers, dark
+  theme, compile verification, and a worked example.
+- [references/layout-conventions.md](references/layout-conventions.md) — the feature-layout
+  directory skeleton, detail-view anatomy, prose conventions, operation flows, external-service
+  adapter docs, roadmap format, and link hygiene.
 
 ## Core constraints
 
 - Composition is enclosure, never an arrow. Dependency is an arrow, never enclosure.
-- A subfeature has no client surface or lifecycle of its own; if it does, it is a feature.
-- Primitives have no inbound arrows. Their consumption is documented as a tag on the consumer.
-- Every node states its primitive dependencies; every colored node appears in the rework table.
-- Verify compilation with mermaid-cli in both default and dark themes before delivering.
-- Adapt node names, edges, and tags to the target repository; do not copy the example domains.
+- Arrow orientation is semantics: **A → B means B depends on A**; the arrow starts at the
+  provider of the contract.
+- A shared service is a documentation unit of its own (own view under `services/`), not a
+  compartment of its main consumer and not a dashed sidecar.
+- Primitives have no inbound arrows; their consumption is documented as a `⚑` tag on the
+  consumer.
+- Diagram colors never encode roadmap status; status lives in prose, alignment tables, and the
+  roadmap.
+- Detail views separate intended design from implementation gaps; unimplemented APIs are
+  labelled *proposed*.
+- Verify mmdc compilation in both themes and relative-link resolution before delivering.
+- Adapt names, contracts, and examples to the target repository; do not copy the worked-example
+  domains.
