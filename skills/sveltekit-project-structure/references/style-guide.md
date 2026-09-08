@@ -41,8 +41,9 @@ location only after more than one owner genuinely needs it.
 
 ## Architectural vocabulary
 
-Reusable application code uses four broad categories. HTTP routes, long-running services, and
-one-shot commands are executable adapters around that reusable code.
+Reusable application code includes feature implementations, common contracts, primitives, shared
+application services, and integration adapters. HTTP routes, long-running processes, and one-shot
+commands are executable adapters around that reusable code.
 
 ### Feature code
 
@@ -128,17 +129,17 @@ implementation details remain in `server/db/`.
 Do not place a feature DTO in `common/db/` merely because it is persisted. An account update remains
 owned by `common/feature/account-settings/`; storage is an implementation detail of that feature.
 
-### Internal shared services
+### Shared application capabilities
 
-An internal shared service owns reusable application state and rules behind typed public
+An internal shared service owns cohesive application behavior behind typed public
 contracts, and several product features consume it. Examples include media/asset management with
 a reference registry and delivery resolution, notification scheduling, document numbering, and
 file conversion.
 
 Place it under a dedicated server directory such as
-`$lib/server/services/<service-name>/`. Persistent state and coordination rules distinguish a
-shared service from a small utility such as a URL formatter — a formatter is a helper owned by
-its caller, not a service.
+`$lib/server/services/<service-name>/`. It may own SQL data, object-storage manifests, or no durable
+state at all. Its cohesive application contract distinguishes it from a small utility such as a
+URL formatter — a formatter remains a helper owned by its caller, not a service.
 
 A shared service must not import product features. Feature-specific behavior crosses the
 boundary as a named provider contract the service defines and features implement; the
@@ -146,7 +147,7 @@ application composition root registers implementations. A feature may also acces
 directly for its own data — the shared-service layer exists where responsibilities are genuinely
 shared, not as a mandatory wrapper around every query.
 
-### External-service adapters
+### Integration capabilities
 
 An external-service adapter wraps an independently operated capability — payment gateway, email
 delivery, PDF rendering — behind a local typed contract. Place adapters under
@@ -187,15 +188,22 @@ Allowed dependencies:
 | `feature/<name>`                                     | matching `common/feature/<name>`, generic UI, browser-safe primitives                             |
 | `server/feature/<name>`                              | matching common feature contracts, common primitives, server primitives, and explicit server APIs |
 | `common/feature/<name>`                              | other browser-safe common code only when ownership is clear                                       |
-| `server/services/<service-name>`                     | server primitives and matching common contracts; never product features                            |
+| `server/services/<service-name>`                     | primitives, service-owned/common contracts, lower-level service APIs, injected integration contracts; never product features |
 | `server/integrations/<provider-name>`                | server primitives and typed configuration; never product features or application tables             |
-| `services/<name>` and `commands/<name>`              | server feature APIs, server primitives, and explicitly shared common contracts                    |
+| `src/services/<name>` and `src/commands/<name>`       | server feature APIs, shared application services, integrations, server primitives, and common contracts |
+| `ui`                                                | generic UI and browser-safe primitives; never product features                                     |
+| primitives                                          | lower-level primitives; never product features or shared application services                       |
 | route `.svelte` and universal load code              | feature code, generic UI, and browser-safe common code                                            |
-| `+page.server.ts`, `+layout.server.ts`, `+server.ts` | server feature code and common contracts                                                          |
+| `+page.server.ts`, `+layout.server.ts`, `+server.ts` | owned server feature or shared-service APIs and common contracts                                    |
 
 Avoid sideways feature dependencies. If feature A needs behavior from feature B, expose a small
 public API from B or move the truly shared contract to a clearly owned common module. Do not create
 a broad `shared.ts` to bypass the ownership decision.
+
+Shared services may consume lower-level shared-service contracts or injected integration contracts
+when the dependency has a clear purpose and remains acyclic. Their implementations never import
+product features or the application composition root. Provider registration happens outside both
+implementations; a provider callback must not re-enter the operation that invoked it.
 
 ## Feature boundaries
 
@@ -214,6 +222,10 @@ Avoid features named after vague technical categories such as `helpers`, `models
 
 Browser, server, and common feature folders with the same feature name describe different runtime
 sides of one capability. They do not need identical internal structures.
+
+For parent concepts containing distinct child capabilities, see [Feature families](feature-families.md).
+It covers nesting, child public APIs, sibling dependencies, and family composition without turning
+the parent into a universal repository or barrel.
 
 ### Placement example
 
@@ -263,7 +275,7 @@ src/lib/server/
 │       ├── service.ts
 │       ├── repository.ts
 │       └── runtime.ts
-├── services/                        internal shared services (state + public contracts)
+├── services/                        internal shared application capabilities
 │   └── media-manager/
 │       ├── contracts.ts             public contracts: references, delivery, administration
 │       ├── manager.ts               implementation behind the contracts
@@ -455,7 +467,7 @@ responsibilities differ.
 ### Server-only types
 
 Keep repository rows, transaction contexts, trusted service inputs, and storage details in the
-owning `$lib/server/feature/<feature-name>/` or server primitive.
+owning `$lib/server/feature/<feature-name>/`, `$lib/server/services/<service-name>/`, or server primitive.
 
 ### Avoid global type collections
 
@@ -781,9 +793,10 @@ service or command main.ts
                          +--> common contracts when required
 ```
 
-Server features and primitives must never import from `services/` or `commands/`. One executable
+Reusable server modules must never import from `src/services/` or `src/commands/`. This restriction
+does not prohibit importing reusable `$lib/server/services/` contracts. One executable
 must not import another executable's `main.ts`. If two entrypoints share behavior, place that
-behavior under the narrowest shared server feature or primitive.
+behavior under the narrowest server feature, shared application service, or primitive.
 
 ### Configuration and environment
 
@@ -844,8 +857,10 @@ context for diagnosis.
 
 ## Internal shared services
 
-Create `$lib/server/services/<service-name>/` when a capability owns persistent state and
-reusable contracts that several features consume. Keep one directory per service:
+Use `$lib/server/services/<service-name>/` for a cohesive in-process application capability with
+an independent contract consumed by several features. It need not own a database table, registry,
+network endpoint, or process. Reuse by several callers alone does not justify extracting policy
+from its true product owner. Keep one directory per real service; the example files are optional:
 
 ```text
 server/services/media-manager/
@@ -858,12 +873,14 @@ server/services/media-manager/
 
 Rules:
 
-- the service owns its tables, registries, and coordination rules; it does not own the business
+- the service owns its internal state (if any) and coordination rules; it does not own the business
   relationships of its consumers (which SKU uses a media reference stays with the SKU feature)
-- `contracts.ts` is the service's public surface: typed functions, not an HTTP surface; admin
-  routes remain responsible for authentication and authorization
-- the service must not import from `$lib/server/feature/`; feature-specific behavior crosses the
-  boundary as a provider contract defined in `providers.ts` and implemented by features
+- expose a small typed function API; `contracts.ts` and an explicit `index.ts` are optional ways to
+  express it, not mandatory files. Routes retain audience authentication; owning features retain
+  business authorization and lifecycle policy, while the service enforces its own scope invariants
+- the service must not import from `$lib/server/feature/`; when feature-specific behavior is
+  actually needed, accept a named provider contract implemented by the feature. Simple services
+  can accept typed values and primitive clients without introducing a provider registry
 - the application composition root (for example `$lib/server/application/`) constructs the
   service runtime and registers feature providers; a base runtime without providers keeps the
   service importable from contexts that must not depend on product features
@@ -871,6 +888,31 @@ Rules:
   responsibilities are genuinely shared
 - promote a shared service out of a feature only when a second real consumer exists or the state
   is genuinely shared; do not pre-create service directories speculatively
+
+### Project-artifact example
+
+A project-artifact service consumed by intake, review, workflow execution, and purge can live in
+`$lib/server/services/project-artifacts/` even when it owns no SQL tables. It owns canonical
+project/inspection paths, manifests, media slots, file validation, signed URLs, and scoped transfers.
+The object-storage primitive owns provider mechanics. Project/intake/trash features own lifecycle,
+upload eligibility, and permission to delete; workflow owns stage dispatch and completion policy.
+An ID in a storage path does not make the service the owner of that entity's lifecycle.
+
+Pass explicit project and inspection scope into artifact operations. Do not infer a parent ID from
+an inspection ID, select an arbitrary first child, or broaden inspection deletion to a project
+prefix. Keep validators with artifacts but job-stage decisions with workflow; moving the directory
+alone does not establish that boundary.
+
+Keep reusable factories free of SvelteKit environment imports and singleton construction.
+SvelteKit runtime modules bind application clients; standalone processes construct the same
+factories with their own clients and typed configuration. A shared service does not need `main.ts`,
+an HTTP hop, or another deployment. Schema definitions stay under `server/db/schema`; any SQL
+queries for service-owned data belong in its repository, following [feature data access](feature-data-access.md).
+
+SQL rollback cannot roll back object-storage writes. When a feature combines both, document who
+owns retry, staging cleanup, and compensation; do not describe the combined operation as atomic.
+Test the public capability with injected storage and configuration, including sibling-scope
+isolation and partial failures. Test real database/storage boundaries separately when needed.
 
 ## External-service adapters
 
@@ -905,14 +947,16 @@ word choose the directory:
 
 | Term | Meaning | Directory | Owns |
 | --- | --- | --- | --- |
-| Internal shared service | Reusable application state and rules behind typed public contracts, consumed by several features | `$lib/server/services/<name>/` | Its tables, registries, and coordination rules |
+| Internal shared service | Cohesive in-process application behavior consumed by several features | `$lib/server/services/<name>/` | Its contracts, coordination rules, and any internal state |
 | External-service adapter | Local typed wrapper around an independently operated provider | `$lib/server/integrations/<name>/` | Protocol, signing, verification, credentials — no business state |
 | Standalone service executable | A long-running process with its own runtime lifecycle | `src/services/<name>/` | The process: polling, signals, graceful shutdown |
 
 A standalone executable may compose shared services and adapters, but shared services and
 adapters never import executables. When documenting architecture (for example a feature-layout
-directory), the same three concepts appear as product features, shared services, and external
-services; keep the documentation labels consistent with these ownership rules.
+directory), record ownership separately from deployment. A self-hosted model server is a deployed
+process; its SvelteKit client is an integration adapter. Calling that deployment an internal service
+does not place its implementation in `$lib/server/services/`. Feature-local `service.ts` is also a
+valid application-service implementation and does not become shared merely because of its name.
 
 ## Validation and network boundaries
 
@@ -1016,6 +1060,10 @@ as separate concepts. Migration state should not become permanent domain languag
 Component tests should focus on observable interaction and rendering behavior rather than private
 implementation details.
 
+For automated checks of runtime zones, owner boundaries, public exports, and cycles, see
+[Boundary enforcement](boundary-enforcement.md). Validate forbidden as well as allowed edges;
+typechecking alone does not enforce architectural ownership.
+
 ## SvelteKit framework roots and global styling
 
 SvelteKit root files are framework composition points with narrow responsibilities:
@@ -1061,8 +1109,8 @@ Before adding or moving code, ask:
 17. Is a SvelteKit framework root limited to framework composition?
 18. Does every API handler retain an explicit caller audience and its required authorization
     fencing?
-19. Is a capability with persistent state and several feature consumers classified as an internal
-    shared service rather than absorbed into its most frequent consumer?
+19. Does a shared application capability have an independent contract and multiple real consumers,
+    rather than merely a reused product operation or generic helper? Persistent state is optional.
 20. Does the shared service define provider contracts instead of importing product features, with
     implementations registered at the composition root?
 21. Does the external-service adapter own only protocol, verification, and credentials, with
@@ -1096,31 +1144,6 @@ workflow and reviewed with the source change that produced them.
 
 Every newly required environment variable must be documented and provided to build and deployment
 environments.
-
-## Review checklist
-
-Before adding or moving code, ask:
-
-1. Which feature or primitive owns this behavior?
-2. Does it run in the browser, on the server, or identically in both?
-3. Is this type private, component-public, sibling-shared, cross-boundary, or server-only?
-4. Is a new file clarifying a responsibility, or only satisfying a template?
-5. Does this import follow the allowed dependency direction?
-6. Can the logic be a pure function with explicit inputs and returned state changes?
-7. Is the route acting as an adapter, or accumulating application behavior?
-8. Does an `index.ts` define a useful public API, or hide internal dependencies?
-9. Is a generic filename becoming a dumping ground?
-10. Is the behavior tested at its narrowest stable boundary?
-11. Is an executable correctly classified as a long-running service or a one-shot command?
-12. Is `main.ts` limited to configuration, dependency construction, lifecycle, and outcome handling?
-13. Is browser network access owned by a typed feature client rather than a presentational component?
-14. Is browser-worker computation separated from its messaging adapter and testable as pure logic?
-15. Is a dataset classified as domain reference data, presentation configuration, runtime
-    configuration, a public asset, or a test fixture?
-16. Are database tables and row types confined to server database and repository boundaries?
-17. Is a SvelteKit framework root limited to framework composition?
-18. Does every API handler retain an explicit caller audience and its required authorization
-    fencing?
 
 ## Adoption
 
