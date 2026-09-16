@@ -1,4 +1,4 @@
-# Boundary enforcement
+# Architecture boundary enforcement
 
 Use this reference when establishing or changing architecture checks. Checks enforce the project's
 agreed ownership rules; they do not decide product ownership or whether a migration is complete.

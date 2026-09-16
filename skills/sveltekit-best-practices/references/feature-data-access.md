@@ -1,4 +1,4 @@
-# Feature data access
+# SvelteKit feature data access
 
 Use this reference when implementing or reviewing persistence inside a SvelteKit server feature.
 Standardize ownership and dependency direction without turning the database primitive into a

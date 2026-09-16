@@ -23,4 +23,4 @@ Build design-driven components whose consumers can supply typed content, assets,
 - Preserve repository-native Svelte syntax, styling, tokens, aliases, and public API conventions.
 - Do not invent placeholder assets, replacement SVG paths, or short-lived production URLs.
 - Do not make every visual value configurable; expose only meaningful content or design variants.
-- Use `$svelte-component-development` for general component mechanics and `$sveltekit-project-structure` for broader ownership decisions when those skills are available.
+- Use `$sveltekit-best-practices` for general component mechanics, route behavior, and broader ownership decisions when that skill is available.

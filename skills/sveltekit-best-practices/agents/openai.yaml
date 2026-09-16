@@ -1,0 +1,4 @@
+interface:
+  display_name: "SvelteKit Best Practices"
+  short_description: "Build and organize robust SvelteKit apps"
+  default_prompt: "Use $sveltekit-best-practices to implement or review this SvelteKit code with clear state, component, route, runtime, and feature boundaries."

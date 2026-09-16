@@ -1,9 +1,9 @@
-# General Svelte Best Practices
+# Svelte and SvelteKit Component Best Practices
 
 This guide covers day-to-day Svelte and SvelteKit implementation practices. Adapt the examples to
 the repository's installed Svelte version, compiler settings, styling system, and local conventions.
-Use the repository's architecture guidance, or `$sveltekit-project-structure` when available, for
-file ownership, dependency direction, and project structure.
+Use the structure and ownership references routed by the parent skill for file placement,
+dependency direction, and project-wide architecture decisions.
 
 ## Contents
 
@@ -42,6 +42,16 @@ project's current version.
   mirror one variable into another. Effects should be small and have an obvious cleanup boundary.
 - Pass reactive inputs explicitly to helpers. Avoid module-level mutable state unless it is an
   intentional shared store with documented ownership and lifecycle.
+- Prefer functions that compute or retrieve data to return typed results instead of mutating state
+  outside their ownership boundary. Pure helpers should have no hidden state changes.
+- Event handlers and component or route orchestrators may deliberately update local `$state` when
+  they own a UI lifecycle such as loading, errors, cancellation, progressive batches, selection,
+  focus, or worker coordination. Ordinary component `<script>` state is instance-owned; it is not
+  module-global state.
+- When an orchestrator grows difficult to test, separate retrieval and deterministic transformation
+  into returning functions. Keep the remaining local mutation explicit and narrowly responsible for
+  applying results and coordinating the UI lifecycle. Use an async iterator or explicit progress
+  callback only when progressive results are a real requirement.
 - Snapshot rune proxies before cloning or serializing them. Do not pass live reactive proxies across
   network, worker, or persistence boundaries.
 - Treat derived values as computed state rather than independent mutable state. If a project intentionally

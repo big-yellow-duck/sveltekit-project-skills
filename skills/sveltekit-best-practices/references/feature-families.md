@@ -1,4 +1,4 @@
-# Feature families
+# SvelteKit feature families
 
 Use a family when one product concept owns several cohesive capabilities with distinct behavior,
 contracts, or tests. A family is an ownership boundary, not another runtime category. Apply the

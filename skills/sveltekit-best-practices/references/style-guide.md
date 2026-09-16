@@ -1,4 +1,4 @@
-# SvelteKit Project Structure Style Guide
+# SvelteKit Structure and Ownership Guide
 
 This guide defines reusable coding and ownership conventions for SvelteKit 5 applications. Adapt
 the examples to the project's product language, configured aliases, persistence layer, styling
