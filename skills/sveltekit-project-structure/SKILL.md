@@ -25,8 +25,10 @@ Make file placement and dependency decisions explicit. Favor incremental, behavi
    when multiple owners genuinely share the same meaning.
    For nested feature families, distinguish parent-owned behavior from child public APIs; nesting
    does not grant unrestricted access to sibling internals.
-8. Keep routes and executable entrypoints thin. Move reusable behavior behind owned feature,
-   shared-service, or primitive APIs.
+8. Keep routes and executable entrypoints focused, but do not make them empty pass-through wrappers.
+   Keep route-specific page composition, state, and markup in the route. Move reusable behavior
+   behind owned feature, shared-service, or primitive APIs, and extract UI only when the extracted
+   unit has a distinct responsibility or more than one real consumer.
 9. Preserve behavior unless redesign is explicit, then run the repository's type checks and focused tests.
    When defining or changing architectural boundaries, verify the affected import/export rules
    with repository-native checks; report any enforcement gaps rather than claiming full coverage.
@@ -57,6 +59,8 @@ same-level heading:
 - External-service adapters own protocol, signing, verification, and credential injection; business state such as orders, retries, and durable message intent stays in the consuming feature.
 - Adapt examples and aliases to the target repository. Do not introduce a tool or directory solely because it appears in the guide.
 - Do not create empty directories, barrels, type files, or helpers merely to match an example tree.
+- Do not move an entire route into a single-use `*Page.svelte` component merely to make the route
+  file shorter. File length alone does not justify a component boundary.
 - Do not hide sideways feature dependencies behind generic `shared`, `common`, or `utils` modules.
 - Keep product queries in feature-owned repositories. Keep connections, transactions, schema definitions, and cross-feature mechanics in the database primitive.
 - Restrict direct ORM schema imports to repository modules and application database-singleton imports to runtime composition roots, except for documented infrastructure integrations.

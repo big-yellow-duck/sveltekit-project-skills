@@ -411,6 +411,13 @@ Route components should compose feature components and coordinate route-level st
 not accumulate unrelated editors, API clients, transformation logic, and rendering subsystems in a
 single file.
 
+Do not interpret route composition as requiring every page to delegate its complete implementation
+to a single feature-level `*Page.svelte` component. When that component has one route consumer and
+only mirrors the route's props, state, effects, and markup, it is a pass-through abstraction: keep
+the implementation in the route and extract smaller components with distinct responsibilities.
+Extract a complete page component only when it has a meaningful independent contract, multiple
+real consumers, independent testing value, or another concrete ownership boundary.
+
 File length is a review signal, not a hard limit. When a component becomes difficult to describe in
 one sentence, or contains multiple independent state machines, split by responsibility rather than
 by arbitrary line count.
@@ -671,9 +678,15 @@ SvelteKit route files are framework adapters.
 - compose feature components
 - connect route data to feature view models
 - own navigation-specific behavior
-- coordinate only state whose lifetime is the route or layout
+- coordinate state whose lifetime and ownership are specific to the route or layout
 
 Reusable product behavior belongs in `$lib/feature/<feature-name>/`.
+
+A thin route is focused, not necessarily short. Do not extract the route's entire page into a
+single-use feature component solely to minimize the size of `+page.svelte`; that only relocates the
+route without creating reuse or a clearer boundary. Keep route-owned composition, state, effects,
+and markup together, while extracting cohesive editors, panels, controls, and deterministic logic
+that have their own responsibility.
 
 ### Server load functions and actions
 
