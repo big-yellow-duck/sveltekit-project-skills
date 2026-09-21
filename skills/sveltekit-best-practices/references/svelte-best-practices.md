@@ -28,6 +28,28 @@ project's current version.
   rendering.
 - Use snippets and component composition for reusable markup. Do not create a wrapper component
   solely to shorten a template unless it owns behavior, styling, or a meaningful public contract.
+- Define reusable local snippets as a contiguous block immediately after `</script>` and before the
+  component's page markup. Define them before the markup that uses them; do not bury a snippet
+  beside its call site or inside a conditional render branch. Snippets may still capture the
+  component's instance state and can be passed to child components as render props. For example:
+
+  ```svelte
+  </script>
+
+  {#snippet folderDraft()}
+    <CreateFolder parentId={scope.kind === 'folder' ? scope.folderId : null} />
+  {/snippet}
+
+  {#snippet projectActions(project: ProjectListItem)}
+    <TrashItemAction projectId={project.id} />
+  {/snippet}
+
+  <ProjectFolderCards draft={creatingFolder ? folderDraft : undefined} />
+  <ProjectCards actions={canManageProjects ? projectActions : undefined} />
+  ```
+
+  Keep one-off markup at its call site. Extract a snippet when the markup is reused, supplied to
+  another component, or forms a named rendering contract.
 - Keep DOM and browser API work explicit. Use `onMount` instead of `$effect` for setup that runs once
   after mounting and return cleanup for listeners, observers, timers, subscriptions, and other
   persistent resources.

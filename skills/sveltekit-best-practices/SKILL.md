@@ -72,4 +72,5 @@ same-level heading:
 - Do not hide sideways feature dependencies behind generic `shared`, `common`, or `utils` modules.
 - Keep product queries in feature-owned repositories. Keep connections, transactions, schema definitions, and cross-feature mechanics in the database primitive.
 - Restrict direct ORM schema imports to repository modules and application database-singleton imports to runtime composition roots, except for documented infrastructure integrations.
+- Declare reusable local Svelte snippets together immediately after `</script>` and before the page or component's main markup. Keep their definitions separate from the markup that consumes them, and pass them to child components through typed snippet props or render-prop contracts.
 - Derive target structures from actual capabilities and runtimes rather than copying example names.
