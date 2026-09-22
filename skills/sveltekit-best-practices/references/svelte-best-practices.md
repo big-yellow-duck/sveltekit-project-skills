@@ -95,6 +95,19 @@ project's current version.
 - Prefer semantic HTML and native controls before adding custom interaction. Every form control needs
   an associated label; interactive elements need an accessible name, keyboard behavior, and visible
   focus treatment.
+- Every `<img>` must include `alt`. Keep the native element and its other props at the call site;
+  do not introduce a media wrapper only to enforce alt text. For managed assets, derive a readable
+  default with the repository's pure `deriveAltFromAssetName(assetName)` helper when the canonical
+  asset name is meaningful. Use `alt=""` explicitly for decorative images, and pass an explicit
+  feature-owned alt value when the image's meaning depends on surrounding content. Prefer the
+  canonical asset name over parsing a CDN or signed delivery URL. External images need an explicit
+  alt value because they may not have a managed asset name.
+- Video elements do not have an `alt` attribute. Give informative videos an accessible label,
+  visible context, or captions; mark decorative videos as hidden from assistive technology when
+  appropriate.
+- During sitewide accessibility work, inventory raw image markup and classify each use as derived,
+  decorative, or contextual. Enforce the required `alt` attribute with the repository's lint or
+  template check, and test the derivation helper with readable, versioned, and unusable asset names.
 - Preserve heading order, meaningful landmarks, sufficient color contrast, and useful loading,
   empty, error, and disabled states. Do not use ARIA to repair an element that should be native.
 - Keep feature styles with feature components and generic tokens/resets in the configured global

@@ -72,5 +72,6 @@ same-level heading:
 - Do not hide sideways feature dependencies behind generic `shared`, `common`, or `utils` modules.
 - Keep product queries in feature-owned repositories. Keep connections, transactions, schema definitions, and cross-feature mechanics in the database primitive.
 - Restrict direct ORM schema imports to repository modules and application database-singleton imports to runtime composition roots, except for documented infrastructure integrations.
+- Keep native image markup flexible. Every `<img>` needs an `alt` attribute; use a pure `deriveAltFromAssetName()` helper for managed assets with readable names, `alt=""` for decorative images, and an explicit feature-owned value when the image meaning depends on its context. Do not require a wrapper component solely to enforce this rule or derive labels from opaque delivery URLs when the canonical asset name is available. Video elements do not use `alt`; give informative video an accessible label or captions.
 - Declare reusable local Svelte snippets together immediately after `</script>` and before the page or component's main markup. Keep their definitions separate from the markup that consumes them, and pass them to child components through typed snippet props or render-prop contracts.
 - Derive target structures from actual capabilities and runtimes rather than copying example names.
